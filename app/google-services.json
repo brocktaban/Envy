@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "103295426743",
+    "firebase_url": "https://envy-dev.firebaseio.com",
+    "project_id": "envy-dev",
+    "storage_bucket": "envy-dev.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:103295426743:android:6b2766fb8286241a",
+        "android_client_info": {
+          "package_name": "com.brocktaban.envy"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "103295426743-9ugtl7b13rh3ctrqjkphfedobb7fokob.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.brocktaban.envy",
+            "certificate_hash": "41906a9fdbf47d7a2a20e8396dc2a9420da7e09a"
+          }
+        },
+        {
+          "client_id": "103295426743-uam3ogtl6nfsbr4rt6glta1ap76991gk.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCi3IxfhR1KKiHGxbaT8w2N2fjPUjo0US0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "103295426743-uam3ogtl6nfsbr4rt6glta1ap76991gk.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,12 +1,16 @@
 package com.brocktaban.envy
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import org.jetbrains.anko.intentFor
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : _Main() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+
+        if (mUser == null)
+            startActivity(intentFor<Auth>())
+        else
+            setContentView(R.layout.activity_main)
     }
 }
