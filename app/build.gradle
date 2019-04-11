@@ -45,6 +45,12 @@ dependencies {
     implementation 'com.google.firebase:firebase-auth:16.2.1'
     implementation 'com.google.firebase:firebase-firestore:18.2.0'
 
+    // Facebook
+    implementation 'com.facebook.android:facebook-android-sdk:4.42.0'
+
+    // Google Play Services
+    implementation 'com.google.android.gms:play-services-auth:16.0.1'
+
     // Material.io
     implementation 'com.google.android.material:material:1.0.0'
 
