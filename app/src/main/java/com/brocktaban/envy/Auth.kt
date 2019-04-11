@@ -1,6 +1,7 @@
 package com.brocktaban.envy
 
 import android.os.Bundle
+import androidx.fragment.app.Fragment
 import kotlinx.android.synthetic.main.activity_auth.*
 
 
@@ -19,5 +20,13 @@ class Auth : _Main() {
                     .add(R.id.frameLayout, Login())
                     .commit()
         }
+    }
+
+    fun changeFragment(fragment: Fragment) {
+        supportFragmentManager
+                .beginTransaction()
+                .replace(R.id.frameLayout, fragment)
+                .addToBackStack(null)
+                .commit()
     }
 }
