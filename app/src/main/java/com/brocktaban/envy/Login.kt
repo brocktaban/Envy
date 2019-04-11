@@ -20,8 +20,16 @@ import org.jetbrains.anko.AnkoLogger
 import org.jetbrains.anko.design.snackbar
 import org.jetbrains.anko.info
 import org.jetbrains.anko.wtf
-import android.app.ProgressDialog
 import android.widget.ProgressBar
+import com.facebook.AccessToken
+import com.facebook.CallbackManager
+import com.facebook.FacebookCallback
+import com.facebook.FacebookException
+import com.facebook.login.LoginResult
+import com.facebook.login.widget.LoginButton
+import com.google.android.material.button.MaterialButton
+import com.google.firebase.auth.FacebookAuthProvider
+import org.jetbrains.anko.design.longSnackbar
 
 
 class Login : Fragment(), AnkoLogger {
@@ -30,11 +38,15 @@ class Login : Fragment(), AnkoLogger {
 
     private lateinit var auth: FirebaseAuth
     private lateinit var googleSignInClient: GoogleSignInClient
+    private lateinit var callbackManager: CallbackManager
 
     private lateinit var mActivity: Auth
     private lateinit var mMain: ConstraintLayout
     private lateinit var mProgressBar: ProgressBar
-
+    private lateinit var facebookLogin: LoginButton
+    private lateinit var mGoogleBtn: MaterialButton
+    private lateinit var mFacebookBtn: MaterialButton
+    private lateinit var mLoginButton: MaterialButton
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
@@ -52,16 +64,41 @@ class Login : Fragment(), AnkoLogger {
         mActivity           = activity as Auth
         mMain               = v.main
         mProgressBar        = v.progressBar
+        callbackManager     = CallbackManager.Factory.create()
+        facebookLogin       = LoginButton(context)
+        mGoogleBtn          = v.btnGoogle
+        mFacebookBtn        = v.btnFacebook
+        mLoginButton        =v.btnLogin
 
-        v.btnLogin.setOnClickListener { mActivity.changeFragment(SignUp()) }
-        v.btnGoogle.setOnClickListener { signInWithGoogle() }
+        facebookLogin.setReadPermissions("email", "public_profile")
+        facebookLogin.registerCallback(callbackManager, object : FacebookCallback<LoginResult> {
+            override fun onSuccess(loginResult: LoginResult) {
+                info("facebook:onSuccess:$loginResult")
+                handleFacebookAccessToken(loginResult.accessToken)
+            }
+
+            override fun onCancel() {
+                info( "facebook:onCancel")
+            }
+
+            override fun onError(error: FacebookException) {
+                info("facebook:onError", error)
+            }
+        })
+
+        mLoginButton.setOnClickListener { mActivity.changeFragment(SignUp()) }
+        mGoogleBtn.setOnClickListener { signInWithGoogle() }
+        mFacebookBtn.setOnClickListener {
+            startLogin()
+            facebookLogin.performClick()
+        }
 
         return v
     }
 
 
     private fun signInWithGoogle() {
-        mProgressBar.visibility = View.VISIBLE
+        startLogin()
         val signInIntent = googleSignInClient.signInIntent
         startActivityForResult(signInIntent, RC_SIGN_IN)
     }
@@ -73,18 +110,50 @@ class Login : Fragment(), AnkoLogger {
         auth.signInWithCredential(credential)
                 .addOnCompleteListener(mActivity) { task ->
 
-                    mProgressBar.visibility = View.GONE
+                    endLogin()
 
                     if (task.isSuccessful) {
-                        // Sign in success, update UI with the signed-in user's information
                         info( "signInWithCredential:success")
                         val user = auth.currentUser
 
                     } else {
                         wtf("signInWithCredential:failure", task.exception)
-                        mMain.snackbar("Authentication Failed")
+                        mMain.snackbar("Authentication Failed. ${task.exception?.localizedMessage}")
                     }
                 }
+    }
+
+    private fun handleFacebookAccessToken(token: AccessToken) {
+        info("handleFacebookAccessToken:$token")
+
+        val credential = FacebookAuthProvider.getCredential(token.token)
+        auth.signInWithCredential(credential)
+                .addOnCompleteListener(mActivity) { task ->
+
+                    endLogin()
+
+                    if (task.isSuccessful) {
+                        info("signInWithCredential:success")
+                        val user = auth.currentUser
+                    } else {
+                        wtf("signInWithCredential:failure", task.exception)
+                        mMain.longSnackbar("Authentication Failed. ${task.exception?.localizedMessage}")
+                    }
+                }
+    }
+
+    private fun startLogin() {
+        mProgressBar.visibility = View.VISIBLE
+        mGoogleBtn.isEnabled    = false
+        mFacebookBtn.isEnabled  = false
+        mLoginButton.isEnabled  = false
+    }
+
+    private fun endLogin() {
+        mProgressBar.visibility = View.GONE
+        mGoogleBtn.isEnabled    = true
+        mFacebookBtn.isEnabled  = true
+        mLoginButton.isEnabled  = true
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -96,9 +165,11 @@ class Login : Fragment(), AnkoLogger {
                 val account = task.getResult(ApiException::class.java)
                 firebaseAuthWithGoogle(account!!)
             } catch (e: ApiException) {
-                mProgressBar.visibility = View.GONE
+                endLogin()
                 wtf( "Google sign in failed", e)
             }
         }
+
+        callbackManager.onActivityResult(requestCode, resultCode, data)
     }
 }

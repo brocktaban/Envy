@@ -3,7 +3,7 @@ package com.brocktaban.envy
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import kotlinx.android.synthetic.main.activity_auth.*
-
+import android.content.Intent
 
 class Auth : _Main() {
 
@@ -28,5 +28,11 @@ class Auth : _Main() {
                 .replace(R.id.frameLayout, fragment)
                 .addToBackStack(null)
                 .commit()
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        val fragment = supportFragmentManager.findFragmentById(R.id.frameLayout)
+        fragment?.onActivityResult(requestCode, resultCode, data)
     }
 }
