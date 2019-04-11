@@ -30,13 +30,14 @@ import com.facebook.login.widget.LoginButton
 import com.google.android.material.button.MaterialButton
 import com.google.firebase.auth.FacebookAuthProvider
 import org.jetbrains.anko.design.longSnackbar
+import org.jetbrains.anko.intentFor
 
 
 class Login : Fragment(), AnkoLogger {
 
     private val RC_SIGN_IN = 202
 
-    private lateinit var auth: FirebaseAuth
+    private lateinit var mAuth: FirebaseAuth
     private lateinit var googleSignInClient: GoogleSignInClient
     private lateinit var callbackManager: CallbackManager
 
@@ -60,7 +61,7 @@ class Login : Fragment(), AnkoLogger {
                 .build()
 
         googleSignInClient  = GoogleSignIn.getClient(mActivity, gso)
-        auth                = FirebaseAuth.getInstance()
+        mAuth               = FirebaseAuth.getInstance()
         mActivity           = activity as Auth
         mMain               = v.main
         mProgressBar        = v.progressBar
@@ -86,7 +87,8 @@ class Login : Fragment(), AnkoLogger {
             }
         })
 
-        mLoginButton.setOnClickListener { mActivity.changeFragment(SignUp()) }
+        v.dontHaveAccount.setOnClickListener { mActivity.changeFragment(SignUp()) }
+        mLoginButton.setOnClickListener { signInWithEmailPassword(v) }
         mGoogleBtn.setOnClickListener { signInWithGoogle() }
         mFacebookBtn.setOnClickListener {
             startLogin()
@@ -94,6 +96,58 @@ class Login : Fragment(), AnkoLogger {
         }
 
         return v
+    }
+
+    private fun signInWithEmailPassword(v: View) {
+        val email = v.etEmail.text.toString()
+        val password = v.etPassword.text.toString()
+
+        val emailLayout = v.ilEmail
+        val passwordLayout = v.ilPassword
+
+        emailLayout.isErrorEnabled = false
+        passwordLayout.isErrorEnabled = false
+
+        if (mActivity.isNullOrEmpty(email)) {
+            emailLayout.isErrorEnabled = true
+            emailLayout.error = "Email can't be empty"
+            return
+        }
+
+        if (mActivity.isNullOrEmpty(password)) {
+            passwordLayout.isErrorEnabled = true
+            passwordLayout.error = "Password can't be empty"
+            return
+        }
+
+        if (!mActivity.isEmailValid(email)) {
+            emailLayout.isErrorEnabled = true
+            emailLayout.error = "Email is not valid"
+            return
+        }
+
+        if (password.length <= 6) {
+            passwordLayout.isErrorEnabled = true
+            passwordLayout.error = "Password can't be less than 6 characters"
+            return
+        }
+
+        startLogin()
+
+        mAuth
+                .signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener { task ->
+
+                    endLogin()
+
+                    if (!task.isSuccessful) {
+                        wtf("Could not sign in", task.exception)
+                        mMain.longSnackbar(task.exception?.localizedMessage.toString())
+                        return@addOnCompleteListener
+                    }
+
+                    successLogin()
+                }
     }
 
 
@@ -107,15 +161,14 @@ class Login : Fragment(), AnkoLogger {
         info("firebaseAuthWithGoogle:" + acct.id!!)
 
         val credential = GoogleAuthProvider.getCredential(acct.idToken, null)
-        auth.signInWithCredential(credential)
+        mAuth.signInWithCredential(credential)
                 .addOnCompleteListener(mActivity) { task ->
 
                     endLogin()
 
                     if (task.isSuccessful) {
                         info( "signInWithCredential:success")
-                        val user = auth.currentUser
-
+                        successLogin()
                     } else {
                         wtf("signInWithCredential:failure", task.exception)
                         mMain.snackbar("Authentication Failed. ${task.exception?.localizedMessage}")
@@ -127,14 +180,14 @@ class Login : Fragment(), AnkoLogger {
         info("handleFacebookAccessToken:$token")
 
         val credential = FacebookAuthProvider.getCredential(token.token)
-        auth.signInWithCredential(credential)
+        mAuth.signInWithCredential(credential)
                 .addOnCompleteListener(mActivity) { task ->
 
                     endLogin()
 
                     if (task.isSuccessful) {
                         info("signInWithCredential:success")
-                        val user = auth.currentUser
+                        successLogin()
                     } else {
                         wtf("signInWithCredential:failure", task.exception)
                         mMain.longSnackbar("Authentication Failed. ${task.exception?.localizedMessage}")
@@ -154,6 +207,10 @@ class Login : Fragment(), AnkoLogger {
         mGoogleBtn.isEnabled    = true
         mFacebookBtn.isEnabled  = true
         mLoginButton.isEnabled  = true
+    }
+
+    private fun successLogin() {
+        startActivity(context?.intentFor<MainActivity>())
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

@@ -30,6 +30,16 @@ class Auth : _Main() {
                 .commit()
     }
 
+    fun isNullOrEmpty(str: String?): Boolean {
+        if (str != null && !str.trim().isEmpty())
+            return false
+        return true
+    }
+
+    fun isEmailValid(email: String): Boolean {
+        return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         val fragment = supportFragmentManager.findFragmentById(R.id.frameLayout)
