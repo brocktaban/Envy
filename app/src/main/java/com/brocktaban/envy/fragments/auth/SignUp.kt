@@ -1,4 +1,4 @@
-package com.brocktaban.envy
+package com.brocktaban.envy.fragments.auth
 
 
 import android.os.Bundle
@@ -7,11 +7,12 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.brocktaban.envy.MainActivity
+import com.brocktaban.envy.R
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.android.synthetic.main.fragment_sign_up.view.*
 import org.jetbrains.anko.design.longSnackbar
 import org.jetbrains.anko.intentFor
-import org.jetbrains.anko.wtf
 
 class SignUp : Fragment() {
 

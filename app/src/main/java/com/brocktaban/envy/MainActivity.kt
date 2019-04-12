@@ -2,6 +2,9 @@ package com.brocktaban.envy
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
+import com.brocktaban.envy.fragments.Home
+import com.brocktaban.envy.fragments.auth.Auth
+import com.brocktaban.envy.helpers.MainMenuModal
 import com.google.android.material.bottomappbar.BottomAppBar
 import kotlinx.android.synthetic.main.activity_main.*
 import org.jetbrains.anko.AnkoLogger

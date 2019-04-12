@@ -1,4 +1,4 @@
-package com.brocktaban.envy
+package com.brocktaban.envy.fragments
 
 
 import android.content.Context
@@ -10,6 +10,10 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.brocktaban.envy.helpers.Confession
+import com.brocktaban.envy.helpers.DataClass
+import com.brocktaban.envy.MainActivity
+import com.brocktaban.envy.R
 import com.bumptech.glide.Glide
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.android.synthetic.main.fragment_home.view.*
@@ -17,11 +21,7 @@ import kotlinx.android.synthetic.main.item_home.view.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.jetbrains.anko.AnkoLogger
-import org.jetbrains.anko.wtf
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 class Home : Fragment(), AnkoLogger {
 

@@ -1,4 +1,4 @@
-package com.brocktaban.envy
+package com.brocktaban.envy.fragments.auth
 
 
 import android.content.Intent
@@ -21,6 +21,8 @@ import org.jetbrains.anko.design.snackbar
 import org.jetbrains.anko.info
 import org.jetbrains.anko.wtf
 import android.widget.ProgressBar
+import com.brocktaban.envy.MainActivity
+import com.brocktaban.envy.R
 import com.facebook.AccessToken
 import com.facebook.CallbackManager
 import com.facebook.FacebookCallback

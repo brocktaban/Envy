@@ -1,4 +1,4 @@
-package com.brocktaban.envy
+package com.brocktaban.envy.helpers
 
 import com.google.firebase.firestore.FirebaseFirestore
 import org.jetbrains.anko.AnkoLogger

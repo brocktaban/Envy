@@ -1,4 +1,4 @@
-package com.brocktaban.envy
+package com.brocktaban.envy.helpers
 
 import android.content.Context
 import android.os.Bundle
@@ -10,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import com.brocktaban.envy.R
 import kotlinx.android.synthetic.main.fragment_main_menu_list_dialog.*
 import kotlinx.android.synthetic.main.fragment_menu_dialog_item.view.*
 

@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/main"
-    tools:context=".SignUp">
+    tools:context=".fragments.auth.SignUp">
 
     <ProgressBar
         android:id="@+id/progressBar"
