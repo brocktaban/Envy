@@ -63,6 +63,7 @@ class MainActivity : _Main(), AnkoLogger, MainMenuModal.Listener {
         supportFragmentManager
                 .beginTransaction()
                 .replace(R.id.mainFrameLayout, fragment)
+                .addToBackStack(null)
                 .commit()
     }
 }
