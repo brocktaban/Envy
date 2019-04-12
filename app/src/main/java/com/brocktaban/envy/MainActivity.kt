@@ -1,6 +1,7 @@
 package com.brocktaban.envy
 
 import android.os.Bundle
+import androidx.fragment.app.Fragment
 import com.google.android.material.bottomappbar.BottomAppBar
 import kotlinx.android.synthetic.main.activity_main.*
 import org.jetbrains.anko.AnkoLogger
@@ -26,6 +27,15 @@ class MainActivity : _Main(), AnkoLogger, MainMenuModal.Listener {
 
         setSupportActionBar(bar)
 
+        if (mainFrameLayout != null) {
+            if (savedInstanceState != null) return
+
+            supportFragmentManager
+                    .beginTransaction()
+                    .add(R.id.mainFrameLayout, Home())
+                    .commit()
+        }
+
         fab.setOnClickListener {
             if (fabCenter) {
                 bar.fabAlignmentMode = BottomAppBar.FAB_ALIGNMENT_MODE_END
@@ -47,5 +57,12 @@ class MainActivity : _Main(), AnkoLogger, MainMenuModal.Listener {
             menuIcons.add(R.drawable.ic_settings_black_24dp)
 
             MainMenuModal(menuList, menuIcons).show(supportFragmentManager, "main menu") }
+    }
+
+    fun changeFragment(fragment: Fragment) {
+        supportFragmentManager
+                .beginTransaction()
+                .replace(R.id.mainFrameLayout, fragment)
+                .commit()
     }
 }
