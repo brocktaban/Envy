@@ -5,4 +5,7 @@
     <color name="colorAccent">#795548</color>
     <color name="google_red">#F14336</color>
     <color name="facebook">#3b5998</color>
+    <color name="white">#ffffff</color>
+    <color name="black">#000000</color>
+    <color name="text_body">#99000000</color>
 </resources>

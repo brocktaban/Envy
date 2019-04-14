@@ -1,9 +1,11 @@
-package com.brocktaban.envy
+package com.brocktaban.envy.fragments.auth
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import kotlinx.android.synthetic.main.activity_auth.*
 import android.content.Intent
+import com.brocktaban.envy.R
+import com.brocktaban.envy._Main
 
 class Auth : _Main() {
 
