@@ -1,8 +1,9 @@
 <resources>
     <string name="app_name">Envy</string>
 
-    <string name="facebook_app_id">1473462879455635</string>
-    <string name="fb_login_protocol_scheme">fb1473462879455635</string>
+    <string name="facebook_app_id" translatable="false">1473462879455635</string>
+    <string name="fb_login_protocol_scheme" translatable="false">fb1473462879455635</string>
+    <string name="google_places_api" translatable="false">AIzaSyBDWV-2tSAuSXXSAhWlYBBR4Av5C1dhDwU</string>
 
     <string name="create_account">Don\'t have Account? <b>Create Account</b></string>
     <string name="login">Login</string>

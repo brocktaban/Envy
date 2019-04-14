@@ -1,14 +1,17 @@
 package com.brocktaban.envy
 
 import android.os.Bundle
+import android.view.View
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import com.brocktaban.envy.fragments.CreateConfession
 import com.brocktaban.envy.fragments.Home
 import com.brocktaban.envy.fragments.auth.Auth
 import com.brocktaban.envy.helpers.MainMenuModal
 import com.google.android.material.bottomappbar.BottomAppBar
 import kotlinx.android.synthetic.main.activity_main.*
-import org.jetbrains.anko.AnkoLogger
-import org.jetbrains.anko.intentFor
+import org.jetbrains.anko.*
 
 class MainActivity : _Main(), AnkoLogger, MainMenuModal.Listener {
 
@@ -19,6 +22,7 @@ class MainActivity : _Main(), AnkoLogger, MainMenuModal.Listener {
     }
 
     private var fabCenter = true
+    var canCreateConfession = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,9 +47,12 @@ class MainActivity : _Main(), AnkoLogger, MainMenuModal.Listener {
             if (fabCenter) {
                 bar.fabAlignmentMode = BottomAppBar.FAB_ALIGNMENT_MODE_END
                 fab.setImageResource(R.drawable.ic_done_black_24dp)
+                changeFragment(CreateConfession())
             } else {
-                bar.fabAlignmentMode = BottomAppBar.FAB_ALIGNMENT_MODE_CENTER
-                fab.setImageResource(R.drawable.ic_add_black_24dp)
+                if (canCreateConfession) {
+                    bar.fabAlignmentMode = BottomAppBar.FAB_ALIGNMENT_MODE_CENTER
+                    fab.setImageResource(R.drawable.ic_add_black_24dp)
+                }
             }
 
             fabCenter = !fabCenter
@@ -68,5 +75,24 @@ class MainActivity : _Main(), AnkoLogger, MainMenuModal.Listener {
                 .replace(R.id.mainFrameLayout, fragment)
                 .addToBackStack(null)
                 .commit()
+    }
+
+    override fun onBackPressed() {
+        if (!fabCenter && !canCreateConfession) {
+            AlertDialog.Builder(this)
+                    .setTitle("Continue?")
+                    .setMessage("Do you really want to go back?")
+                    .setPositiveButton("yes") { _, _ ->
+                        bar.fabAlignmentMode = BottomAppBar.FAB_ALIGNMENT_MODE_CENTER
+                        fab.setImageResource(R.drawable.ic_add_black_24dp)
+
+                        fabCenter = !fabCenter
+
+                        super.onBackPressed()
+                    }.setNegativeButton("No") { _, _ ->   }
+                    .show()
+        } else {
+            super.onBackPressed()
+        }
     }
 }
