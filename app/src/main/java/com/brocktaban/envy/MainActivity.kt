@@ -11,6 +11,9 @@ import com.brocktaban.envy.fragments.auth.Auth
 import com.brocktaban.envy.helpers.MainMenuModal
 import com.google.android.material.bottomappbar.BottomAppBar
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.jetbrains.anko.*
 
 class MainActivity : _Main(), AnkoLogger, MainMenuModal.Listener {
@@ -48,14 +51,25 @@ class MainActivity : _Main(), AnkoLogger, MainMenuModal.Listener {
                 bar.fabAlignmentMode = BottomAppBar.FAB_ALIGNMENT_MODE_END
                 fab.setImageResource(R.drawable.ic_done_black_24dp)
                 changeFragment(CreateConfession())
+                fabCenter = !fabCenter
+                canCreateConfession = false
             } else {
-                if (canCreateConfession) {
-                    bar.fabAlignmentMode = BottomAppBar.FAB_ALIGNMENT_MODE_CENTER
-                    fab.setImageResource(R.drawable.ic_add_black_24dp)
+                val currentFragment = supportFragmentManager.findFragmentById(R.id.mainFrameLayout)
+
+                if (currentFragment is CreateConfession) {
+                    GlobalScope.launch(Dispatchers.Main) {
+                        wtf("aa")
+                        if (currentFragment.create()) {
+                            wtf("ava")
+                            bar.fabAlignmentMode = BottomAppBar.FAB_ALIGNMENT_MODE_CENTER
+                            fab.setImageResource(R.drawable.ic_add_black_24dp)
+                            changeFragment(Home())
+                            fabCenter = !fabCenter
+                            canCreateConfession = true
+                        }
+                    }
                 }
             }
-
-            fabCenter = !fabCenter
         }
 
         bar.setNavigationOnClickListener {
@@ -75,6 +89,12 @@ class MainActivity : _Main(), AnkoLogger, MainMenuModal.Listener {
                 .replace(R.id.mainFrameLayout, fragment)
                 .addToBackStack(null)
                 .commit()
+    }
+
+    fun isNullOrEmpty(str: String?): Boolean {
+        if (str != null && !str.trim().isEmpty())
+            return false
+        return true
     }
 
     override fun onBackPressed() {
