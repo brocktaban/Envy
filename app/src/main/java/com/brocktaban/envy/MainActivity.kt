@@ -58,9 +58,7 @@ class MainActivity : _Main(), AnkoLogger, MainMenuModal.Listener {
 
                 if (currentFragment is CreateConfession) {
                     GlobalScope.launch(Dispatchers.Main) {
-                        wtf("aa")
                         if (currentFragment.create()) {
-                            wtf("ava")
                             bar.fabAlignmentMode = BottomAppBar.FAB_ALIGNMENT_MODE_CENTER
                             fab.setImageResource(R.drawable.ic_add_black_24dp)
                             changeFragment(Home())

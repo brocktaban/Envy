@@ -12,8 +12,6 @@ import com.theartofdev.edmodo.cropper.CropImage
 import com.theartofdev.edmodo.cropper.CropImageView
 import kotlinx.android.synthetic.main.fragment_create_confession.view.*
 import android.app.Activity.RESULT_OK
-import android.widget.ImageView
-import android.widget.ScrollView
 import org.jetbrains.anko.AnkoLogger
 import org.jetbrains.anko.wtf
 import com.google.android.libraries.places.api.Places
@@ -24,23 +22,18 @@ import com.google.android.libraries.places.widget.Autocomplete
 import android.app.Activity.RESULT_CANCELED
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
-import android.widget.CheckBox
-import android.widget.ProgressBar
+import androidx.appcompat.app.AlertDialog
 import com.brocktaban.envy.helpers.DataClass
 import com.google.android.libraries.places.widget.AutocompleteActivity
-import com.google.android.material.button.MaterialButton
-import com.google.android.material.snackbar.Snackbar
-import com.google.android.material.textfield.TextInputEditText
-import com.google.android.material.textfield.TextInputLayout
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
-import org.jetbrains.anko.design.indefiniteSnackbar
 import org.jetbrains.anko.design.snackbar
 import org.jetbrains.anko.info
 import java.io.ByteArrayOutputStream
 import kotlin.collections.HashMap
-
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 class CreateConfession : Fragment(), AnkoLogger {
 
@@ -51,103 +44,81 @@ class CreateConfession : Fragment(), AnkoLogger {
     private lateinit var mAuth: FirebaseAuth
     private lateinit var storage: FirebaseStorage
 
-    private lateinit var mImage: ImageView
-    private lateinit var mMain: ScrollView
-    private lateinit var mEtTitle: TextInputEditText
-    private lateinit var mEtPlace: TextInputEditText
-    private lateinit var mEtConfession: TextInputEditText
-    private lateinit var mCheckBox: CheckBox
-    private lateinit var mProgressBar: ProgressBar
-    private lateinit var mSelectPlace: MaterialButton
-
-    private lateinit var mLTitle: TextInputLayout
-    private lateinit var mLPlace: TextInputLayout
-    private lateinit var mLConfession: TextInputLayout
+    private lateinit var mView: View
 
     private var imageSelected = false
     private var mPlace: Place? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
-        val v = inflater.inflate(R.layout.fragment_create_confession, container, false)
+        mView = inflater.inflate(R.layout.fragment_create_confession, container, false)
 
         if (!Places.isInitialized()) {
             Places.initialize(context!!, context!!.getString(R.string.google_places_api))
         }
-        val fields = Arrays.asList(Place.Field.ID, Place.Field.NAME)
+        val fields = Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG)
 
         mActivity = activity as MainActivity
         db = FirebaseFirestore.getInstance()
         storage = FirebaseStorage.getInstance()
         mAuth = FirebaseAuth.getInstance()
 
-        mImage = v.image
-        mMain = v.main
-        mEtTitle = v.etTitle
-        mEtPlace = v.etPlace
-        mEtConfession = v.etConfession
-        mCheckBox = v.checkbox
-        mProgressBar = v.progressBar
-        mSelectPlace = v.selectPlaceButton
-
-        mLTitle = v.title
-        mLPlace = v.place
-        mLConfession = v.confession
-
-//        mActivity.canCreateConfession = true
-
-        mImage.setOnClickListener {
+        mView.image.setOnClickListener {
             context?.let { c ->
                 CropImage.activity()
                         .setGuidelines(CropImageView.Guidelines.ON)
-                        .setAspectRatio(1,1)
+                        .setAspectRatio(1, 1)
                         .start(c, this)
             }
         }
 
-        v.selectPlaceButton.setOnClickListener {
+        mView.selectPlaceButton.setOnClickListener {
             val intent = Autocomplete.IntentBuilder(
                     AutocompleteActivityMode.FULLSCREEN, fields)
                     .build(context!!)
             startActivityForResult(intent, AUTOCOMPLETE_REQUEST_CODE)
         }
 
-        mLConfession.counterMaxLength = 500
+        mView.confession.counterMaxLength = 500
 
-        return v
+        return mView
     }
 
     suspend fun create(): Boolean {
 
-        val title = mEtTitle.text.toString()
-        val content = mEtConfession.text.toString()
+        val title = mView.etTitle.text.toString()
+        val content = mView.etConfession.text.toString()
 
-        mLTitle.isErrorEnabled = false
-        mLPlace.isErrorEnabled = false
-        mLConfession.isErrorEnabled = false
+        mView.title.isErrorEnabled = false
+        mView.place.isErrorEnabled = false
+        mView.confession.isErrorEnabled = false
 
         if (mActivity.isNullOrEmpty(title)) {
-            mLTitle.isErrorEnabled = true
-            mLTitle.error = "Subject can't be empty"
+            mView.title.isErrorEnabled = true
+            mView.title.error = "Subject can't be empty"
             return false
         }
 
         if (mPlace == null) {
-            mLPlace.isErrorEnabled = true
-            mLPlace.error = "Place can't be empty"
+            mView.place.isErrorEnabled = true
+            mView.place.error = "Place can't be empty"
             return false
         }
 
         if (mActivity.isNullOrEmpty(content)) {
-            mLConfession.isErrorEnabled = true
-            mLConfession.error = "Confession can't be empty"
+            mView.confession.isErrorEnabled = true
+            mView.confession.error = "Confession can't be empty"
             return false
         }
 
         if (!imageSelected) {
-            mMain.snackbar("Choose an image", "Choose") {
-                mImage.performClick()
+            mView.main.snackbar("Choose an image", "Choose") {
+                mView.image.performClick()
             }
+            return false
+        }
+
+        if (showAlert() == null) {
             return false
         }
 
@@ -160,12 +131,13 @@ class CreateConfession : Fragment(), AnkoLogger {
         confessionMap["content"] = content
         confessionMap["timestamp"] = Date()
         confessionMap["uid"] = uid
-        confessionMap["anonymous"] = mCheckBox.isChecked
+        confessionMap["place"] = mPlace!!
+        confessionMap["anonymous"] = mView.checkbox.isChecked
 
         val ref = storage.reference.child("confessions/$uid.png")
-        mImage.isDrawingCacheEnabled = true
-        mImage.buildDrawingCache()
-        val bitmap = (mImage.drawable as BitmapDrawable).bitmap
+        mView.image.isDrawingCacheEnabled = true
+        mView.image.buildDrawingCache()
+        val bitmap = (mView.image.drawable as BitmapDrawable).bitmap
         val baos = ByteArrayOutputStream()
         bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos)
         val data = baos.toByteArray()
@@ -182,24 +154,31 @@ class CreateConfession : Fragment(), AnkoLogger {
 
     }
 
-    fun startLoading() {
-        mProgressBar.visibility = View.VISIBLE
-        mImage.isEnabled = false
-        mLTitle.isEnabled = false
-        mLConfession.isEnabled = false
-        mLConfession.isEnabled = false
-        mSelectPlace.isEnabled = false
-        mCheckBox.isEnabled = false
+    private suspend fun showAlert() = suspendCoroutine<Unit?> {
+        AlertDialog.Builder(context!!)
+                .setTitle("Publish")
+                .setMessage("Do you really want to post this confession?")
+                .setPositiveButton("yes") { _, _ -> it.resume(Unit) }
+                .setNegativeButton("No") { _, _ -> it.resume(null) }
+                .show()
     }
 
-    fun endLoading() {
-        mProgressBar.visibility = View.GONE
-        mImage.isEnabled = true
-        mLTitle.isEnabled = true
-        mLConfession.isEnabled = true
-        mLConfession.isEnabled = true
-        mSelectPlace.isEnabled = true
-        mCheckBox.isEnabled = true
+    private fun startLoading() {
+        mView.progressBar.visibility = View.VISIBLE
+        mView.image.isEnabled = false
+        mView.title.isEnabled = false
+        mView.confession.isEnabled = false
+        mView.selectPlaceButton.isEnabled = false
+        mView.checkbox.isEnabled = false
+    }
+
+    private fun endLoading() {
+        mView.progressBar.visibility = View.GONE
+        mView.image.isEnabled = true
+        mView.title.isEnabled = true
+        mView.confession.isEnabled = true
+        mView.selectPlaceButton.isEnabled = true
+        mView.checkbox.isEnabled = true
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
@@ -207,12 +186,15 @@ class CreateConfession : Fragment(), AnkoLogger {
 
         if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
             val result = CropImage.getActivityResult(data)
+            wtf(result)
             if (resultCode == RESULT_OK) {
+                wtf("result ok")
                 val resultUri = result.uri
-                mImage.setPadding(0,0,0,0)
-                mImage.setImageURI(resultUri)
+                mView.image.setPadding(0, 0, 0, 0)
+                mView.image.setImageURI(resultUri)
                 imageSelected = true
             } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
+                wtf("result error")
                 wtf(result.error)
             }
         }
@@ -222,16 +204,16 @@ class CreateConfession : Fragment(), AnkoLogger {
                 RESULT_OK -> {
                     val place = Autocomplete.getPlaceFromIntent(data)
                     mPlace = place
-                    mEtPlace.setText(place.name)
+                    mView.etPlace.setText(place.name)
                     info("Place: " + place.name + ", " + place.id)
                 }
                 AutocompleteActivity.RESULT_ERROR -> {
                     val status = Autocomplete.getStatusFromIntent(data)
-                    mMain.snackbar(status.statusMessage.toString())
+                    mView.main.snackbar(status.statusMessage.toString())
                     wtf(status.statusMessage)
                 }
                 RESULT_CANCELED -> {
-                    mMain.snackbar("Cancelled")
+                    mView.main.snackbar("Cancelled")
                 }
             }
         }
