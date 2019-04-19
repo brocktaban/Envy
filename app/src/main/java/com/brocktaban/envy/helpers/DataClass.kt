@@ -4,6 +4,7 @@ import android.net.Uri
 import com.google.android.gms.tasks.Continuation
 import com.google.android.gms.tasks.Task
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.google.firebase.storage.UploadTask
@@ -28,7 +29,11 @@ class DataClass {
     companion object {
 
         suspend fun getConfessionAsArrayList(db: FirebaseFirestore) = suspendCoroutine<ArrayList<Confession>?> {
-            db.collection("confessions").get().addOnCompleteListener { task ->
+            db
+                    .collection("confessions")
+                    .orderBy("timestamp", Query.Direction.DESCENDING)
+                    .get()
+                    .addOnCompleteListener { task ->
                 if (!task.isSuccessful) {
                     it.resume(null)
                     task.exception?.printStackTrace()
