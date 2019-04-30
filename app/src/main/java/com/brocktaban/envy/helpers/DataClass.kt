@@ -8,6 +8,10 @@ import com.google.firebase.firestore.Query
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.google.firebase.storage.UploadTask
+import kotlinx.android.synthetic.main.fragment_confession_info.*
+import org.jetbrains.anko.AnkoLogger
+import org.jetbrains.anko.design.snackbar
+import org.jetbrains.anko.wtf
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
@@ -24,9 +28,16 @@ data class Confession(
         var anonymous: Boolean? = null
 )
 
+data class User(
+        var id: String? = null,
+        var displayName: String? = null,
+        var photoURL: String? = null,
+        var timeCreated: Date? = null
+)
+
 class DataClass {
 
-    companion object {
+    companion object: AnkoLogger {
 
         suspend fun getConfessionAsArrayList(db: FirebaseFirestore) = suspendCoroutine<ArrayList<Confession>?> {
             db
@@ -60,12 +71,12 @@ class DataClass {
         }
 
         suspend fun createNewConfession(db: FirebaseFirestore, confession: HashMap<String, Any>) = suspendCoroutine<Unit?>{
-            val col = db.collection("confessions")
-            val id = col.id
+            val doc = db.collection("confessions").document()
+            val id = doc.id
 
             confession["id"] = id
 
-            col.add(confession)
+            doc.set(confession)
                     .addOnCompleteListener { task ->
                         if (!task.isSuccessful) {
                             it.resume(null)
@@ -98,6 +109,49 @@ class DataClass {
 
                         it.resume(task.result.toString())
                     }
+        }
+
+        suspend fun getConfessionById(db: FirebaseFirestore, id: String) = suspendCoroutine<Confession?> {
+            db.collection("confessions").document(id).get().addOnCompleteListener { task ->
+                if (!task.isSuccessful) {
+                    wtf("Could not get confession: $id", task.exception)
+                    return@addOnCompleteListener
+                }
+
+                if (task.result == null) {
+                    wtf("Result is null: $id")
+                    it.resume(null)
+                    return@addOnCompleteListener
+                }
+
+                val confession = task.result!!.toObject(Confession::class.java)
+                it.resume(confession)
+            }
+        }
+
+        suspend fun getUserById(db: FirebaseFirestore, uid: String) = suspendCoroutine<User?>{
+            db.collection("users").document(uid).get().addOnCompleteListener { task ->
+                if (!task.isSuccessful) {
+                    wtf("Could not get user: $uid", task.exception)
+                    it.resume(null)
+                    return@addOnCompleteListener
+                }
+
+                if (task.result == null) {
+                    wtf("Result is null: $uid")
+                    it.resume(null)
+                    return@addOnCompleteListener
+                }
+
+                if (!task.result!!.exists()) {
+                    wtf("There's no user: $uid")
+                    it.resume(null)
+                    return@addOnCompleteListener
+                }
+
+                val user = task.result!!.toObject(User::class.java)
+                it.resume(user)
+            }
         }
     }
 }

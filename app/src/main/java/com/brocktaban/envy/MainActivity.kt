@@ -89,6 +89,15 @@ class MainActivity : _Main(), AnkoLogger, MainMenuModal.Listener {
                 .commit()
     }
 
+    fun changeFragmentWithShared(fragment: Fragment, sharedElement: View, transitionName: String) {
+        supportFragmentManager
+                .beginTransaction()
+                .addSharedElement(sharedElement, transitionName)
+                .replace(R.id.mainFrameLayout, fragment)
+                .addToBackStack(null)
+                .commit()
+    }
+
     fun isNullOrEmpty(str: String?): Boolean {
         if (str != null && !str.trim().isEmpty())
             return false

@@ -22,6 +22,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.jetbrains.anko.AnkoLogger
+import org.jetbrains.anko.wtf
 
 class Home : Fragment(), AnkoLogger {
 
@@ -73,7 +74,7 @@ class Home : Fragment(), AnkoLogger {
     }
 
 
-    private class Adapter(private val items: ArrayList<Confession>, private val context: Context?) : RecyclerView.Adapter<ViewHolder>() {
+    private class Adapter(private val items: ArrayList<Confession>, private val context: Context?) : RecyclerView.Adapter<ViewHolder>(), AnkoLogger {
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ViewHolder(
                 LayoutInflater.from(context).inflate(R.layout.item_home, parent, false)
         )
@@ -88,8 +89,10 @@ class Home : Fragment(), AnkoLogger {
             holder.title.text = confession.title
             holder.content.text = confession.content
 
-            holder.readMore.setOnClickListener {
+            wtf(confession.toString())
 
+            holder.readMore.setOnClickListener {
+                (context as MainActivity).changeFragmentWithShared(ConfessionInfo(confession.id!!), holder.image, "homeImageTransition")
             }
         }
     }
