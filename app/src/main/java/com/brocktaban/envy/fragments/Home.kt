@@ -87,6 +87,10 @@ class Home : Fragment(), AnkoLogger {
 
             holder.title.text = confession.title
             holder.content.text = confession.content
+
+            holder.readMore.setOnClickListener {
+
+            }
         }
     }
 
